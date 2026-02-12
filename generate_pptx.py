@@ -1,1086 +1,945 @@
 """
-Generate Agentic AI Testing Architecture PowerPoint Presentation
-17 Slides — Professional, clean, structured for presenting
+Agentic AI Testing Architecture — Clean, Simple PowerPoint
+17 slides, white background, professional, interview-ready
 """
 
 from pptx import Presentation
-from pptx.util import Inches, Pt, Emu
+from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pptx.enum.shapes import MSO_SHAPE
 
-# ── Color Palette ──────────────────────────────────────────────
-WHITE       = RGBColor(0xFF, 0xFF, 0xFF)
-BLACK       = RGBColor(0x1A, 0x1A, 0x2E)
-DARK_BG     = RGBColor(0x16, 0x21, 0x3E)
-ACCENT_BLUE = RGBColor(0x00, 0x7A, 0xCC)
-LIGHT_BLUE  = RGBColor(0x00, 0xB4, 0xD8)
-ACCENT_TEAL = RGBColor(0x00, 0xC9, 0xA7)
-LIGHT_GRAY  = RGBColor(0xF0, 0xF0, 0xF5)
-MID_GRAY    = RGBColor(0x6B, 0x7B, 0x8D)
-DARK_GRAY   = RGBColor(0x2D, 0x3A, 0x4A)
-RED_ALERT   = RGBColor(0xE7, 0x4C, 0x3C)
-GREEN_OK    = RGBColor(0x2E, 0xCC, 0x71)
-ORANGE_WARN = RGBColor(0xF3, 0x9C, 0x12)
-PURPLE      = RGBColor(0x8E, 0x44, 0xAD)
-SECTION_BG  = RGBColor(0x0D, 0x15, 0x2D)
+# ── Simple Colors ──────────────────────────────────────────
+WHITE      = RGBColor(0xFF, 0xFF, 0xFF)
+BLACK      = RGBColor(0x33, 0x33, 0x33)
+DARK       = RGBColor(0x22, 0x22, 0x22)
+GRAY       = RGBColor(0x66, 0x66, 0x66)
+LIGHT_GRAY = RGBColor(0xE8, 0xE8, 0xE8)
+BLUE       = RGBColor(0x1F, 0x4E, 0x79)
+LIGHT_BLUE = RGBColor(0xD6, 0xE4, 0xF0)
+TABLE_HEAD = RGBColor(0x1F, 0x4E, 0x79)
+TABLE_ROW1 = RGBColor(0xF2, 0xF2, 0xF2)
+TABLE_ROW2 = WHITE
 
 prs = Presentation()
 prs.slide_width  = Inches(13.333)
 prs.slide_height = Inches(7.5)
 
-SLIDE_W = Inches(13.333)
-SLIDE_H = Inches(7.5)
+
+def new_slide():
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    bg = slide.background.fill
+    bg.solid()
+    bg.fore_color.rgb = WHITE
+    return slide
 
 
-# ── Helper Functions ───────────────────────────────────────────
-
-def add_bg(slide, color):
-    bg = slide.background
-    fill = bg.fill
-    fill.solid()
-    fill.fore_color.rgb = color
-
-
-def add_shape_bg(slide, left, top, width, height, color, alpha=None):
-    shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, left, top, width, height)
+def add_title(slide, text, top=Inches(0.3)):
+    tb = slide.shapes.add_textbox(Inches(0.6), top, Inches(12), Inches(0.7))
+    p = tb.text_frame.paragraphs[0]
+    p.text = text
+    p.font.size = Pt(30)
+    p.font.color.rgb = BLUE
+    p.font.bold = True
+    p.font.name = "Calibri"
+    # Underline bar
+    shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.6), top + Inches(0.65), Inches(2.5), Inches(0.04))
     shape.fill.solid()
-    shape.fill.fore_color.rgb = color
+    shape.fill.fore_color.rgb = BLUE
     shape.line.fill.background()
-    if alpha is not None:
-        try:
-            from lxml import etree
-            from pptx.oxml.ns import qn
-            sp_elem = shape._element
-            solid_fill = sp_elem.find('.//' + qn('a:solidFill'))
-            if solid_fill is not None:
-                srgb = solid_fill.find(qn('a:srgbClr'))
-                if srgb is not None:
-                    a_elem = etree.SubElement(srgb, qn('a:alpha'))
-                    a_elem.set('val', str(int(alpha * 1000)))
-        except Exception:
-            pass  # Skip alpha if XML manipulation fails
-    return shape
 
 
-def add_text_box(slide, left, top, width, height, text, font_size=18,
-                 color=WHITE, bold=False, alignment=PP_ALIGN.LEFT,
-                 font_name="Calibri", line_spacing=1.2):
-    txBox = slide.shapes.add_textbox(left, top, width, height)
-    tf = txBox.text_frame
+def add_subtitle(slide, text, top=Inches(1.05)):
+    tb = slide.shapes.add_textbox(Inches(0.6), top, Inches(12), Inches(0.5))
+    p = tb.text_frame.paragraphs[0]
+    p.text = text
+    p.font.size = Pt(16)
+    p.font.color.rgb = GRAY
+    p.font.name = "Calibri"
+    p.font.italic = True
+
+
+def text_box(slide, left, top, width, height, text, size=16, color=BLACK,
+             bold=False, align=PP_ALIGN.LEFT, italic=False):
+    tb = slide.shapes.add_textbox(left, top, width, height)
+    tf = tb.text_frame
     tf.word_wrap = True
     p = tf.paragraphs[0]
     p.text = text
-    p.font.size = Pt(font_size)
+    p.font.size = Pt(size)
     p.font.color.rgb = color
     p.font.bold = bold
-    p.font.name = font_name
-    p.alignment = alignment
-    p.space_after = Pt(0)
-    p.space_before = Pt(0)
-    if line_spacing:
-        p.line_spacing = Pt(font_size * line_spacing)
-    return txBox
+    p.font.name = "Calibri"
+    p.alignment = align
+    p.font.italic = italic
+    return tb
 
 
-def add_bullet_list(slide, left, top, width, height, items, font_size=16,
-                    color=WHITE, bullet_color=ACCENT_TEAL, font_name="Calibri",
-                    spacing=6, bold_prefix=True):
-    txBox = slide.shapes.add_textbox(left, top, width, height)
-    tf = txBox.text_frame
+def bullet_list(slide, left, top, width, items, size=15, color=BLACK, spacing=4):
+    tb = slide.shapes.add_textbox(left, top, width, Inches(len(items) * 0.35))
+    tf = tb.text_frame
     tf.word_wrap = True
-
     for i, item in enumerate(items):
-        if i == 0:
-            p = tf.paragraphs[0]
-        else:
-            p = tf.add_paragraph()
-
-        # Handle bold prefix (text before " — " or " - " at start)
-        if bold_prefix and (" — " in item or " – " in item):
-            sep = " — " if " — " in item else " – "
-            parts = item.split(sep, 1)
-            run1 = p.add_run()
-            run1.text = "  " + parts[0] + sep
-            run1.font.size = Pt(font_size)
-            run1.font.color.rgb = color
-            run1.font.bold = True
-            run1.font.name = font_name
-            run2 = p.add_run()
-            run2.text = parts[1]
-            run2.font.size = Pt(font_size)
-            run2.font.color.rgb = color
-            run2.font.bold = False
-            run2.font.name = font_name
-        else:
-            run = p.add_run()
-            run.text = "  " + item
-            run.font.size = Pt(font_size)
-            run.font.color.rgb = color
-            run.font.bold = False
-            run.font.name = font_name
-
-        # Add bullet character
-        bullet_run = p.add_run()
-        bullet_run.text = ""
-        p.space_after = Pt(spacing)
+        p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
         p.space_before = Pt(spacing)
+        p.space_after = Pt(spacing)
+        
+        if " -- " in item:
+            # Bold prefix
+            parts = item.split(" -- ", 1)
+            r1 = p.add_run()
+            r1.text = "  " + parts[0] + " -- "
+            r1.font.size = Pt(size)
+            r1.font.color.rgb = color
+            r1.font.bold = True
+            r1.font.name = "Calibri"
+            r2 = p.add_run()
+            r2.text = parts[1]
+            r2.font.size = Pt(size)
+            r2.font.color.rgb = color
+            r2.font.name = "Calibri"
+        else:
+            r = p.add_run()
+            r.text = "  " + item
+            r.font.size = Pt(size)
+            r.font.color.rgb = color
+            r.font.name = "Calibri"
 
-        # Bullet via XML
+        # Bullet character
         from pptx.oxml.ns import qn
         pPr = p._p.get_or_add_pPr()
-        buNone = pPr.findall(qn('a:buNone'))
-        for bn in buNone:
+        for bn in pPr.findall(qn('a:buNone')):
             pPr.remove(bn)
-        buChar = pPr.makeelement(qn('a:buChar'), {'char': '▸'})
-        buClr = pPr.makeelement(qn('a:buClr'), {})
-        srgb = buClr.makeelement(qn('a:srgbClr'), {'val': '%02X%02X%02X' % (bullet_color[0], bullet_color[1], bullet_color[2]) if isinstance(bullet_color, tuple) else str(bullet_color).replace('#','')})
-        buClr.append(srgb)
-        pPr.append(buClr)
+        buChar = pPr.makeelement(qn('a:buChar'), {'char': '\u2022'})
         pPr.append(buChar)
-        buSz = pPr.makeelement(qn('a:buSzPct'), {'val': '100000'})
-        pPr.append(buSz)
 
-    return txBox
+    return tb
 
 
-def add_table(slide, left, top, width, height, headers, rows, 
-              header_color=ACCENT_BLUE, font_size=13):
+def add_table(slide, left, top, width, row_height, headers, rows, font_size=12):
     cols = len(headers)
-    row_count = len(rows) + 1
-    table_shape = slide.shapes.add_table(row_count, cols, left, top, width, height)
+    total_rows = len(rows) + 1
+    table_shape = slide.shapes.add_table(total_rows, cols, left, top, width,
+                                         Inches(row_height * total_rows))
     table = table_shape.table
-
-    col_width = int(width / cols)
+    col_w = int(width / cols)
     for i in range(cols):
-        table.columns[i].width = col_width
+        table.columns[i].width = col_w
 
-    # Header row
     for i, h in enumerate(headers):
         cell = table.cell(0, i)
         cell.text = h
         cell.fill.solid()
-        cell.fill.fore_color.rgb = header_color
+        cell.fill.fore_color.rgb = TABLE_HEAD
         p = cell.text_frame.paragraphs[0]
         p.font.size = Pt(font_size)
         p.font.color.rgb = WHITE
         p.font.bold = True
         p.font.name = "Calibri"
-        p.alignment = PP_ALIGN.CENTER
+        p.alignment = PP_ALIGN.LEFT
         cell.vertical_anchor = MSO_ANCHOR.MIDDLE
 
-    # Data rows
-    for r_idx, row in enumerate(rows):
-        for c_idx, val in enumerate(row):
-            cell = table.cell(r_idx + 1, c_idx)
+    for r, row in enumerate(rows):
+        for c, val in enumerate(row):
+            cell = table.cell(r + 1, c)
             cell.text = str(val)
-            if r_idx % 2 == 0:
-                cell.fill.solid()
-                cell.fill.fore_color.rgb = RGBColor(0x1E, 0x2D, 0x4A)
-            else:
-                cell.fill.solid()
-                cell.fill.fore_color.rgb = RGBColor(0x16, 0x21, 0x3E)
+            cell.fill.solid()
+            cell.fill.fore_color.rgb = TABLE_ROW1 if r % 2 == 0 else TABLE_ROW2
             p = cell.text_frame.paragraphs[0]
-            p.font.size = Pt(font_size - 1)
-            p.font.color.rgb = RGBColor(0xDD, 0xDD, 0xDD)
+            p.font.size = Pt(font_size)
+            p.font.color.rgb = BLACK
             p.font.name = "Calibri"
-            p.alignment = PP_ALIGN.LEFT
             cell.vertical_anchor = MSO_ANCHOR.MIDDLE
 
     return table_shape
 
 
-def add_accent_bar(slide, left, top, width=Inches(0.06), height=Inches(1.0), color=ACCENT_TEAL):
+def section_box(slide, left, top, width, height, title, items, title_size=16):
     shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, left, top, width, height)
     shape.fill.solid()
-    shape.fill.fore_color.rgb = color
-    shape.line.fill.background()
-    return shape
+    shape.fill.fore_color.rgb = RGBColor(0xF7, 0xF9, 0xFC)
+    shape.line.color.rgb = LIGHT_GRAY
+    shape.line.width = Pt(1)
+
+    text_box(slide, left + Inches(0.15), top + Inches(0.08), width - Inches(0.3), Inches(0.35),
+             title, size=title_size, color=BLUE, bold=True)
+    bullet_list(slide, left + Inches(0.15), top + Inches(0.45), width - Inches(0.3),
+                items, size=13, color=DARK)
 
 
-def add_card(slide, left, top, width, height, title, items, accent=ACCENT_TEAL,
-             font_size=13, title_size=15):
-    # Card background
-    card = add_shape_bg(slide, left, top, width, height, RGBColor(0x1E, 0x2D, 0x4A))
-    # Accent top bar
-    add_shape_bg(slide, left, top, width, Inches(0.05), accent)
-    # Title
-    add_text_box(slide, left + Inches(0.2), top + Inches(0.15), width - Inches(0.4), Inches(0.4),
-                 title, font_size=title_size, color=accent, bold=True)
-    # Items
-    y = top + Inches(0.55)
-    for item in items:
-        add_text_box(slide, left + Inches(0.2), y, width - Inches(0.4), Inches(0.3),
-                     "▸ " + item, font_size=font_size, color=RGBColor(0xCC, 0xCC, 0xCC))
-        y += Inches(0.28)
-    return card
-
-
-def add_slide_number(slide, num, total=17):
-    add_text_box(slide, Inches(12.2), Inches(7.0), Inches(1.0), Inches(0.4),
-                 f"{num} / {total}", font_size=10, color=MID_GRAY, alignment=PP_ALIGN.RIGHT)
-
-
-def add_footer_line(slide):
-    add_shape_bg(slide, Inches(0.5), Inches(6.9), Inches(12.333), Inches(0.01), ACCENT_BLUE)
-
-
-def slide_header(slide, title, subtitle=None, num=1):
-    """Standard slide header with accent bar"""
-    add_accent_bar(slide, Inches(0.5), Inches(0.4), Inches(0.06), Inches(0.6), ACCENT_TEAL)
-    add_text_box(slide, Inches(0.75), Inches(0.3), Inches(10), Inches(0.6),
-                 title, font_size=30, color=WHITE, bold=True)
-    if subtitle:
-        add_text_box(slide, Inches(0.75), Inches(0.85), Inches(10), Inches(0.4),
-                     subtitle, font_size=16, color=MID_GRAY)
-    add_slide_number(slide, num)
-    add_footer_line(slide)
+def slide_num(slide, num):
+    text_box(slide, Inches(12.3), Inches(7.05), Inches(0.8), Inches(0.3),
+             str(num), size=10, color=GRAY, align=PP_ALIGN.RIGHT)
 
 
 # ══════════════════════════════════════════════════════════════
-# SLIDE 1 — TITLE SLIDE
+# SLIDE 1 — TITLE
 # ══════════════════════════════════════════════════════════════
-slide = prs.slides.add_slide(prs.slide_layouts[6])  # Blank
-add_bg(slide, SECTION_BG)
+s = new_slide()
+# Top blue bar
+shape = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, 0, Inches(13.333), Inches(0.08))
+shape.fill.solid(); shape.fill.fore_color.rgb = BLUE; shape.line.fill.background()
 
-# Gradient overlay
-add_shape_bg(slide, Inches(0), Inches(0), SLIDE_W, SLIDE_H, RGBColor(0x00, 0x2B, 0x5C), alpha=40)
-
-# Top accent line
-add_shape_bg(slide, Inches(0), Inches(0), SLIDE_W, Inches(0.06), ACCENT_TEAL)
-
-# Title block
-add_text_box(slide, Inches(1.0), Inches(1.5), Inches(11), Inches(1.2),
-             "Agentic AI Testing Architecture",
-             font_size=44, color=WHITE, bold=True)
-add_text_box(slide, Inches(1.0), Inches(2.5), Inches(11), Inches(0.8),
-             "for Automated Tool Validation",
-             font_size=32, color=LIGHT_BLUE)
+text_box(s, Inches(0.8), Inches(1.8), Inches(11), Inches(1.0),
+         "Agentic AI Testing Architecture", size=40, color=BLUE, bold=True)
+text_box(s, Inches(0.8), Inches(2.8), Inches(11), Inches(0.6),
+         "for Automated Tool Validation", size=28, color=DARK)
 
 # Divider
-add_shape_bg(slide, Inches(1.0), Inches(3.5), Inches(3), Inches(0.04), ACCENT_TEAL)
+shape = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.8), Inches(3.6), Inches(2.5), Inches(0.04))
+shape.fill.solid(); shape.fill.fore_color.rgb = BLUE; shape.line.fill.background()
 
-# Subtitle
-add_text_box(slide, Inches(1.0), Inches(3.9), Inches(11), Inches(0.6),
-             "A Meta-Testing Platform — It tests applications, and it tests itself.",
-             font_size=20, color=RGBColor(0xAA, 0xBB, 0xCC))
+text_box(s, Inches(0.8), Inches(3.9), Inches(11), Inches(0.5),
+         "A Meta-Testing Platform -- It tests applications AND it tests itself.", size=18, color=GRAY)
 
-# Three pillars
-pillar_data = [
-    ("ACCURACY", "AI quality is measured,\nnot assumed", ACCENT_TEAL),
-    ("AUTONOMY", "Minimal human intervention\nfor routine testing", LIGHT_BLUE),
-    ("TRUST", "Every AI decision is\nauditable & traceable", ACCENT_BLUE),
-]
-x_start = Inches(1.0)
-for i, (title, desc, color) in enumerate(pillar_data):
-    x = x_start + Inches(i * 3.8)
-    add_shape_bg(slide, x, Inches(4.8), Inches(3.3), Inches(1.6), RGBColor(0x14, 0x1E, 0x3A))
-    add_shape_bg(slide, x, Inches(4.8), Inches(3.3), Inches(0.05), color)
-    add_text_box(slide, x + Inches(0.2), Inches(5.0), Inches(2.9), Inches(0.4),
-                 title, font_size=18, color=color, bold=True)
-    add_text_box(slide, x + Inches(0.2), Inches(5.4), Inches(2.9), Inches(0.8),
-                 desc, font_size=14, color=RGBColor(0xBB, 0xBB, 0xBB))
+bullet_list(s, Inches(0.8), Inches(4.7), Inches(10), [
+    "Accuracy -- AI quality is measured, not assumed",
+    "Autonomy -- Minimal human intervention for routine testing",
+    "Trust -- Every AI decision is auditable and traceable",
+], size=18, color=DARK, spacing=8)
 
-add_text_box(slide, Inches(1.0), Inches(6.7), Inches(6), Inches(0.4),
-             "Testing Architect Presentation  |  February 2026",
-             font_size=12, color=MID_GRAY)
-add_slide_number(slide, 1)
+text_box(s, Inches(0.8), Inches(6.3), Inches(6), Inches(0.3),
+         "Testing Architect Presentation  |  February 2026", size=12, color=GRAY)
+slide_num(s, 1)
 
 
 # ══════════════════════════════════════════════════════════════
 # SLIDE 2 — PROBLEM STATEMENT
 # ══════════════════════════════════════════════════════════════
-slide = prs.slides.add_slide(prs.slide_layouts[6])
-add_bg(slide, DARK_BG)
-slide_header(slide, "Problem Statement", "Why We Need an Agentic AI Testing Platform", 2)
+s = new_slide()
+add_title(s, "Problem Statement")
+add_subtitle(s, "Why we need an Agentic AI Testing Platform")
 
-# Four problem cards
-problems = [
-    ("Manual Test Design\nDoesn't Scale", "QA becomes bottleneck as\nsprints accelerate", "📈", RED_ALERT),
-    ("Jira Stories Are\nAmbiguous", "35% missing AC\n60% miss negative scenarios", "📝", ORANGE_WARN),
-    ("Automation Scripts\nBreak Frequently", "42% failures from\nbroken locators alone", "🔧", RED_ALERT),
-    ("No Confidence in\nAI-Generated Tests", "No validation framework\nfor hallucination or coverage", "🤖", ORANGE_WARN),
-]
+add_table(s, Inches(0.6), Inches(1.5), Inches(12), 0.45,
+    ["Challenge", "Impact on Testing"],
+    [
+        ["Manual test design doesn't scale", "QA becomes the bottleneck as sprints accelerate; coverage gaps widen silently"],
+        ["Jira stories are ambiguous", "35% have missing acceptance criteria; 60% miss negative/edge scenarios"],
+        ["Automation scripts break frequently", "42% of failures are just broken locators; teams spend more time fixing than writing tests"],
+        ["No confidence in AI-generated tests", "No framework to measure hallucination, coverage, or format consistency"],
+    ])
 
-for i, (title, desc, icon, color) in enumerate(problems):
-    x = Inches(0.5) + Inches(i * 3.15)
-    y = Inches(1.6)
-    add_shape_bg(slide, x, y, Inches(2.95), Inches(2.3), RGBColor(0x1E, 0x2D, 0x4A))
-    add_shape_bg(slide, x, y, Inches(2.95), Inches(0.05), color)
-    add_text_box(slide, x + Inches(0.15), y + Inches(0.2), Inches(2.6), Inches(0.8),
-                 title, font_size=17, color=WHITE, bold=True)
-    add_text_box(slide, x + Inches(0.15), y + Inches(1.1), Inches(2.6), Inches(0.9),
-                 desc, font_size=14, color=RGBColor(0xBB, 0xBB, 0xBB))
+text_box(s, Inches(0.6), Inches(4.2), Inches(12), Inches(0.4),
+         "The Goal:", size=18, color=BLUE, bold=True)
 
-# Goal section
-add_shape_bg(slide, Inches(0.5), Inches(4.3), Inches(12.333), Inches(2.3), RGBColor(0x0D, 0x19, 0x33))
-add_accent_bar(slide, Inches(0.5), Inches(4.3), Inches(0.06), Inches(2.3), GREEN_OK)
-
-add_text_box(slide, Inches(0.9), Inches(4.5), Inches(4), Inches(0.4),
-             "THE GOAL", font_size=20, color=GREEN_OK, bold=True)
-add_text_box(slide, Inches(0.9), Inches(4.95), Inches(11.5), Inches(0.5),
-             "Build a self-learning testing platform that:", font_size=17, color=WHITE)
-
-goals = [
-    "Scales test design without scaling the team",
-    "Detects and flags ambiguous requirements automatically",
-    "Self-heals broken automation scripts",
-    "Measures AI quality with empirical metrics, not assumptions",
-]
-y = Inches(5.5)
-for g in goals:
-    add_text_box(slide, Inches(1.2), y, Inches(11), Inches(0.32),
-                 "✓  " + g, font_size=15, color=RGBColor(0xCC, 0xDD, 0xCC))
-    y += Inches(0.32)
+bullet_list(s, Inches(0.6), Inches(4.6), Inches(11), [
+    "Scale test design without scaling the team",
+    "Detect and flag ambiguous requirements automatically",
+    "Self-heal broken automation scripts when UI changes",
+    "Measure AI quality with empirical metrics (golden datasets, hallucination rate, coverage scores)",
+    "Build a feedback loop so the system improves with every cycle",
+], size=15)
+slide_num(s, 2)
 
 
 # ══════════════════════════════════════════════════════════════
 # SLIDE 3 — HIGH-LEVEL ARCHITECTURE
 # ══════════════════════════════════════════════════════════════
-slide = prs.slides.add_slide(prs.slide_layouts[6])
-add_bg(slide, DARK_BG)
-slide_header(slide, "High-Level Architecture", "5 Independent, Testable Layers", 3)
+s = new_slide()
+add_title(s, "High-Level Architecture")
+add_subtitle(s, "5 independent, testable layers")
 
 layers = [
-    ("LAYER 5", "Control Plane", "Supervisor Agent — Coordinates, decides, retries, escalates", PURPLE),
-    ("LAYER 4", "Analysis & Metrics", "AI Metrics + Execution Metrics — Measures everything", ACCENT_BLUE),
-    ("LAYER 3", "Automation & Execution", "Script Agent → Execution Engine → RCA Agent", LIGHT_BLUE),
-    ("LAYER 2", "Agentic AI", "Requirement Agent → Test Case Agent → Feedback Loop", ACCENT_TEAL),
-    ("LAYER 1", "Input Layer", "Jira Connector → Parser → Validator → Normalizer", GREEN_OK),
+    ("Layer 5: Control Plane", "Supervisor Agent -- Coordinates all agents, makes decisions, triggers retries/escalations"),
+    ("Layer 4: Analysis & Metrics", "AI Metrics + Execution Metrics -- Measures accuracy, coverage, hallucination, pass rate, flakiness"),
+    ("Layer 3: Automation & Execution", "Script Agent + Execution Engine + RCA Agent -- Generates code, runs tests, analyzes failures"),
+    ("Layer 2: Agentic AI", "Requirement Agent + Test Case Agent + Feedback Loop -- Understands stories, generates test cases, learns"),
+    ("Layer 1: Input", "Jira Connector + Parser + Validator + Normalizer -- Fetches, validates, standardizes input data"),
 ]
 
-for i, (layer_num, name, desc, color) in enumerate(layers):
-    y = Inches(1.5) + Inches(i * 1.05)
-    # Layer background
-    add_shape_bg(slide, Inches(0.5), y, Inches(12.333), Inches(0.9), RGBColor(0x1A, 0x2A, 0x44))
-    # Color accent on left
-    add_shape_bg(slide, Inches(0.5), y, Inches(0.08), Inches(0.9), color)
-    # Layer number badge
-    add_shape_bg(slide, Inches(0.8), y + Inches(0.15), Inches(1.2), Inches(0.6), color)
-    add_text_box(slide, Inches(0.8), y + Inches(0.2), Inches(1.2), Inches(0.5),
-                 layer_num, font_size=14, color=WHITE, bold=True, alignment=PP_ALIGN.CENTER)
-    # Name
-    add_text_box(slide, Inches(2.2), y + Inches(0.1), Inches(3), Inches(0.4),
-                 name, font_size=18, color=WHITE, bold=True)
-    # Description
-    add_text_box(slide, Inches(2.2), y + Inches(0.48), Inches(10), Inches(0.4),
-                 desc, font_size=14, color=RGBColor(0xBB, 0xBB, 0xBB))
+y = Inches(1.6)
+for name, desc in layers:
+    shape = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.6), y, Inches(12), Inches(0.8))
+    shape.fill.solid()
+    shape.fill.fore_color.rgb = RGBColor(0xF7, 0xF9, 0xFC)
+    shape.line.color.rgb = LIGHT_GRAY
+    shape.line.width = Pt(1)
+    # Left accent
+    bar = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.6), y, Inches(0.06), Inches(0.8))
+    bar.fill.solid(); bar.fill.fore_color.rgb = BLUE; bar.line.fill.background()
 
-# Key insight
-add_shape_bg(slide, Inches(0.5), Inches(6.85), Inches(12.333), Inches(0.01), ACCENT_BLUE)
-add_text_box(slide, Inches(0.5), Inches(6.45), Inches(12), Inches(0.4),
-             "Architect's View:  Each layer is independently testable. Data flows down, feedback flows up.",
-             font_size=14, color=MID_GRAY)
+    text_box(s, Inches(0.85), y + Inches(0.05), Inches(3.5), Inches(0.35),
+             name, size=15, color=BLUE, bold=True)
+    text_box(s, Inches(0.85), y + Inches(0.38), Inches(11.5), Inches(0.35),
+             desc, size=13, color=DARK)
+    y += Inches(0.92)
+
+text_box(s, Inches(0.6), Inches(6.3), Inches(12), Inches(0.4),
+         "Each layer is independently testable. Data flows down, feedback flows up. Integration boundaries are explicit contract test points.",
+         size=13, color=GRAY, italic=True)
+slide_num(s, 3)
 
 
 # ══════════════════════════════════════════════════════════════
 # SLIDE 4 — AGENTIC AI DESIGN PHILOSOPHY
 # ══════════════════════════════════════════════════════════════
-slide = prs.slides.add_slide(prs.slide_layouts[6])
-add_bg(slide, DARK_BG)
-slide_header(slide, "Agentic AI Design Philosophy", '"Multiple specialized agents coordinated by a supervisor agent"', 4)
+s = new_slide()
+add_title(s, "Agentic AI Design Philosophy")
+add_subtitle(s, "Multiple specialized agents coordinated by a supervisor agent")
 
-# Three pillars
-pillars = [
-    ("Autonomous Execution", ACCENT_TEAL,
-     ["Agents act without step-by-step instructions",
-      "Goal-driven, not rule-driven",
-      "Pipeline runs end-to-end autonomously"]),
-    ("Decision-Making Capability", LIGHT_BLUE,
-     ["Each agent decides and logs its choices",
-      "Confidence scores enable routing",
-      "Decisions are explainable & reversible"]),
-    ("Feedback-Driven Improvement", ACCENT_BLUE,
-     ["Execution results tune LLM prompts",
-      "Thresholds adjust based on outcomes",
-      "System improves with every cycle"]),
-]
+section_box(s, Inches(0.6), Inches(1.6), Inches(3.7), Inches(2.5),
+    "Autonomous Execution", [
+        "Agents act without step-by-step human instructions",
+        "Goal-driven, not rule-driven",
+        "Pipeline runs end-to-end on its own",
+        "Each agent has authority to proceed, retry, or escalate",
+    ])
 
-for i, (title, color, items) in enumerate(pillars):
-    x = Inches(0.5) + Inches(i * 4.15)
-    y = Inches(1.6)
-    add_shape_bg(slide, x, y, Inches(3.9), Inches(3.2), RGBColor(0x1A, 0x2A, 0x44))
-    add_shape_bg(slide, x, y, Inches(3.9), Inches(0.05), color)
-    add_text_box(slide, x + Inches(0.2), y + Inches(0.2), Inches(3.5), Inches(0.5),
-                 title, font_size=18, color=color, bold=True)
-    iy = y + Inches(0.8)
-    for item in items:
-        add_text_box(slide, x + Inches(0.2), iy, Inches(3.5), Inches(0.35),
-                     "▸  " + item, font_size=13, color=RGBColor(0xCC, 0xCC, 0xCC))
-        iy += Inches(0.38)
+section_box(s, Inches(4.6), Inches(1.6), Inches(3.7), Inches(2.5),
+    "Decision-Making Capability", [
+        "Each agent decides and logs its choices",
+        "Confidence scores enable smart routing",
+        "Decisions are explainable and reversible",
+        "Bounded autonomy -- agents can't do catastrophic things",
+    ])
 
-# Comparison box
-add_shape_bg(slide, Inches(0.5), Inches(5.1), Inches(12.333), Inches(1.6), RGBColor(0x0D, 0x19, 0x33))
-add_text_box(slide, Inches(0.8), Inches(5.2), Inches(5), Inches(0.4),
-             "WHY MULTI-AGENT (NOT MONOLITHIC)?", font_size=16, color=ORANGE_WARN, bold=True)
+section_box(s, Inches(8.6), Inches(1.6), Inches(3.7), Inches(2.5),
+    "Feedback-Driven Improvement", [
+        "Execution results feed back into prompts",
+        "Thresholds adjust based on real outcomes",
+        "System measurably improves each cycle",
+        "Prompt regression tests prevent degradation",
+    ])
 
-reasons = [
-    "Each agent fails independently — no single point of failure",
-    "Each agent testable in isolation with its own golden dataset",
-    "Agents scale independently (3 execution agents, 1 RCA agent)",
-    "Clear responsibility boundaries make debugging tractable",
-]
-y = Inches(5.65)
-for r in reasons:
-    add_text_box(slide, Inches(1.0), y, Inches(11), Inches(0.3),
-                 "✓  " + r, font_size=14, color=RGBColor(0xCC, 0xCC, 0xCC))
-    y += Inches(0.3)
+text_box(s, Inches(0.6), Inches(4.5), Inches(12), Inches(0.4),
+         "Why Multi-Agent (not Monolithic)?", size=18, color=BLUE, bold=True)
+
+bullet_list(s, Inches(0.6), Inches(4.9), Inches(11), [
+    "Each agent fails independently -- no single point of failure for the whole system",
+    "Each agent is testable in isolation with its own golden dataset and metrics",
+    "Agents can scale independently (e.g., 5 execution workers but only 1 RCA agent)",
+    "Clear responsibility boundaries make debugging and auditing straightforward",
+], size=14)
+slide_num(s, 4)
 
 
 # ══════════════════════════════════════════════════════════════
 # SLIDE 5 — MODULE 1: JIRA INGESTION
 # ══════════════════════════════════════════════════════════════
-slide = prs.slides.add_slide(prs.slide_layouts[6])
-add_bg(slide, DARK_BG)
-slide_header(slide, "Module 1: Jira Ingestion & Validation", "The Gateway — Where Everything Begins", 5)
+s = new_slide()
+add_title(s, "Module 1: Jira Ingestion & Validation")
+add_subtitle(s, "The entry point -- if garbage enters here, every downstream agent produces garbage")
 
-# What it does
-add_card(slide, Inches(0.5), Inches(1.5), Inches(5.8), Inches(2.2),
-         "WHAT IT DOES", [
-             "Reads Jira story by ID or batch (OAuth/API Token)",
-             "Validates structure — required fields, formats",
-             "Normalizes content — strip HTML, resolve macros",
-             "Outputs canonical JSON for downstream agents",
-         ], accent=ACCENT_TEAL)
+section_box(s, Inches(0.6), Inches(1.6), Inches(5.7), Inches(2.5),
+    "Responsibilities", [
+        "Connect to Jira via OAuth / API Token",
+        "Fetch stories, bugs, tasks by ID or batch by project",
+        "Validate structure -- required fields, supported formats",
+        "Normalize content -- strip HTML, resolve macros, fix encoding",
+        "Output canonical JSON for all downstream agents",
+    ])
 
-# Testing focus
-add_card(slide, Inches(6.8), Inches(1.5), Inches(5.8), Inches(2.2),
-         "TESTING FOCUS", [
-             "Empty/malformed stories → Flag and block",
-             "Expired tokens / no access → Clear auth errors",
-             "Rate limits (429) → Backoff and retry",
-             "XSS payloads / special chars → Sanitized",
-         ], accent=RED_ALERT)
+section_box(s, Inches(6.7), Inches(1.6), Inches(5.7), Inches(2.5),
+    "Testing Focus", [
+        "Empty / malformed stories -- flag as incomplete, don't pass downstream",
+        "Expired tokens / wrong project -- return clear auth errors (401, 403)",
+        "Rate limits (429) -- backoff and retry with Retry-After header",
+        "XSS payloads in story text -- sanitize, never render raw",
+        "Bulk fetch 100+ stories -- pagination, no timeout, no data mixing",
+    ])
 
-# Metrics table
-add_table(slide, Inches(0.5), Inches(4.1), Inches(12.333), Inches(1.6),
-          ["Metric", "Target", "Alert Threshold"],
-          [
-              ["Ingestion Success Rate", ">= 98%", "< 95%"],
-              ["Parsing Error Rate", "< 2%", "> 5%"],
-              ["Validation Pass Rate", ">= 90%", "< 85%"],
-              ["Avg Ingestion Latency", "< 2 seconds", "> 5 seconds"],
-          ])
-
-add_text_box(slide, Inches(0.5), Inches(6.2), Inches(12), Inches(0.4),
-             "Architect's Rule:  If garbage enters here, every downstream agent produces garbage.",
-             font_size=14, color=ORANGE_WARN, bold=False)
+add_table(s, Inches(0.6), Inches(4.5), Inches(12), 0.4,
+    ["Metric", "Target", "Alert Threshold", "Why It Matters"],
+    [
+        ["Ingestion Success Rate", ">= 98%", "< 95%", "Failed fetches block the entire pipeline"],
+        ["Parsing Error Rate", "< 2%", "> 5%", "Malformed data corrupts downstream AI output"],
+        ["Validation Pass Rate", ">= 90%", "< 85%", "Low pass rate may indicate Jira content quality issues"],
+        ["Avg Ingestion Latency", "< 2 seconds", "> 5 seconds", "Slow ingestion delays the full pipeline"],
+    ])
+slide_num(s, 5)
 
 
 # ══════════════════════════════════════════════════════════════
 # SLIDE 6 — MODULE 2: REQUIREMENT UNDERSTANDING
 # ══════════════════════════════════════════════════════════════
-slide = prs.slides.add_slide(prs.slide_layouts[6])
-add_bg(slide, DARK_BG)
-slide_header(slide, "Module 2: Requirement Understanding Agent", "Turning Stories into Testable Knowledge", 6)
+s = new_slide()
+add_title(s, "Module 2: Requirement Understanding Agent")
+add_subtitle(s, "Turning Jira stories into structured, testable knowledge")
 
-add_card(slide, Inches(0.5), Inches(1.5), Inches(3.9), Inches(2.8),
-         "RESPONSIBILITIES", [
-             "Extract acceptance criteria",
-             "  (Gherkin, bullets, prose)",
-             "Identify implicit business rules",
-             "Detect ambiguity & flag vague",
-             "  requirements for review",
-         ], accent=ACCENT_TEAL)
+section_box(s, Inches(0.6), Inches(1.6), Inches(3.7), Inches(2.6),
+    "What It Does", [
+        "Extract acceptance criteria from",
+        "  story body (Gherkin, bullets, prose)",
+        "Identify implicit business rules",
+        "  (e.g., 'login' implies auth needed)",
+        "Detect ambiguity and flag vague",
+        "  requirements for human review",
+    ])
 
-add_card(slide, Inches(4.7), Inches(1.5), Inches(3.9), Inches(2.8),
-         "TESTING STRATEGY", [
-             "Golden Story Comparison",
-             "  — compare vs human-verified",
-             "Hallucination Detection",
-             "  — no invented criteria",
-             "Ambiguity Flag Accuracy",
-         ], accent=LIGHT_BLUE)
+section_box(s, Inches(4.6), Inches(1.6), Inches(3.7), Inches(2.6),
+    "Testing Strategy", [
+        "Golden Story Comparison -- 50-100",
+        "  stories with human-verified output",
+        "Hallucination Detection -- agent must",
+        "  NOT invent criteria not in the story",
+        "Ambiguity Flag Accuracy -- vague",
+        "  phrases flagged, clear ones passed",
+    ])
 
-add_card(slide, Inches(8.9), Inches(1.5), Inches(3.9), Inches(2.8),
-         "AMBIGUITY EXAMPLES", [
-             '✗ "should work correctly"',
-             '✗ "handle errors appropriately"',
-             '✗ "response time acceptable"',
-             '✓ "login with email & password"',
-             '✓ "display name on dashboard"',
-         ], accent=ORANGE_WARN)
+section_box(s, Inches(8.6), Inches(1.6), Inches(3.7), Inches(2.6),
+    "Ambiguity Examples", [
+        'BAD: "should work correctly"',
+        'BAD: "handle errors appropriately"',
+        'BAD: "response time acceptable"',
+        'GOOD: "login with email & password"',
+        'GOOD: "display name on dashboard"',
+        "Agent flags BAD, passes GOOD",
+    ])
 
-# Key metric
-add_shape_bg(slide, Inches(0.5), Inches(4.7), Inches(12.333), Inches(1.8), RGBColor(0x0D, 0x19, 0x33))
-add_text_box(slide, Inches(0.8), Inches(4.85), Inches(4), Inches(0.4),
-             "KEY METRICS", font_size=18, color=ACCENT_TEAL, bold=True)
-
-add_table(slide, Inches(0.8), Inches(5.3), Inches(11.5), Inches(1.0),
-          ["Metric", "Target", "Alert"],
-          [
-              ["Requirement Interpretation Accuracy", ">= 85%", "< 75%"],
-              ["Hallucination Rate", "< 5%", "> 8%"],
-          ])
+add_table(s, Inches(0.6), Inches(4.6), Inches(12), 0.4,
+    ["Metric", "Target", "How We Measure"],
+    [
+        ["Requirement Interpretation Accuracy", ">= 85%", "Compare agent output vs golden dataset (human-verified extractions)"],
+        ["Hallucination Rate", "< 5%", "Count AI-generated items with no source mapping in the original story"],
+        ["Ambiguity Detection F1 Score", ">= 80%", "Precision and recall of flagging vague vs clear requirements"],
+        ["Business Rule Detection Rate", ">= 75%", "Compare detected implicit rules vs expert-identified rules"],
+    ])
+slide_num(s, 6)
 
 
 # ══════════════════════════════════════════════════════════════
 # SLIDE 7 — MODULE 3: TEST CASE DESIGN
 # ══════════════════════════════════════════════════════════════
-slide = prs.slides.add_slide(prs.slide_layouts[6])
-add_bg(slide, DARK_BG)
-slide_header(slide, "Module 3: Test Case Design Agent", "From Requirements to Comprehensive Test Cases", 7)
+s = new_slide()
+add_title(s, "Module 3: Test Case Design Agent")
+add_subtitle(s, "Generating comprehensive, traceable test cases from structured requirements")
 
-add_card(slide, Inches(0.5), Inches(1.5), Inches(5.8), Inches(2.0),
-         "WHAT IT GENERATES", [
-             "Positive path tests — happy flow for each AC",
-             "Negative path tests — invalid inputs, unauthorized access",
-             "Edge cases — boundary values, empty inputs, max lengths",
-             "Risk-based priority (P0-P3) per test case",
-         ], accent=ACCENT_TEAL)
+section_box(s, Inches(0.6), Inches(1.6), Inches(5.7), Inches(2.3),
+    "What It Generates", [
+        "Positive path tests -- happy flow for each acceptance criterion",
+        "Negative path tests -- invalid inputs, unauthorized access, timeouts",
+        "Edge cases -- boundary values, empty inputs, max lengths, special characters",
+        "Risk-based priority assignment (P0-P3) per test case",
+        "Full Jira traceability -- every TC links back to Story ID + AC ID",
+    ])
 
-add_card(slide, Inches(6.8), Inches(1.5), Inches(5.8), Inches(2.0),
-         "TESTING STRATEGY", [
-             "Coverage completeness — every AC has P/N/E cases",
-             "Duplicate detection — semantic similarity check",
-             "Traceability — every TC → Story → AC linked",
-             "Golden dataset comparison — >= 85% coverage match",
-         ], accent=LIGHT_BLUE)
+section_box(s, Inches(6.7), Inches(1.6), Inches(5.7), Inches(2.3),
+    "Testing Strategy", [
+        "Coverage completeness -- every AC has positive + negative + edge tests",
+        "Duplicate detection -- semantic similarity check (cosine > 0.85 = duplicate)",
+        "Golden dataset comparison -- generated TCs vs expert-written TCs (>= 85%)",
+        "Consistency -- same input 5 times produces same TC count and coverage",
+        "Hallucination check -- no TCs for features not mentioned in the story",
+    ])
 
-# Coverage targets table
-add_table(slide, Inches(0.5), Inches(3.9), Inches(12.333), Inches(2.2),
-          ["Coverage Dimension", "What We Check", "Target"],
-          [
-              ["AC Coverage", "Every acceptance criterion has at least 1 test case", "100%"],
-              ["Positive Path", "Each AC has a happy-path test", "100%"],
-              ["Negative Path", "Each AC has at least 1 failure-mode test", ">= 90%"],
-              ["Edge Cases", "Boundary values, empty inputs, max lengths", ">= 80%"],
-              ["Business Rules", "Each rule has violation scenarios", ">= 85%"],
-          ])
+add_table(s, Inches(0.6), Inches(4.3), Inches(12), 0.4,
+    ["Coverage Dimension", "What We Check", "Target"],
+    [
+        ["AC Coverage", "Every acceptance criterion has at least 1 test case", "100%"],
+        ["Positive Path", "Each AC has a happy-path test case", "100%"],
+        ["Negative Path", "Each AC has at least 1 failure-mode test case", ">= 90%"],
+        ["Edge Cases", "Boundary values, empty inputs, max lengths", ">= 80%"],
+        ["Business Rules", "Each identified business rule has violation scenarios", ">= 85%"],
+    ])
 
-add_text_box(slide, Inches(0.5), Inches(6.35), Inches(12), Inches(0.4),
-             "Output:  Structured, auditable JSON test cases with confidence scores and Jira traceability",
-             font_size=14, color=GREEN_OK)
+text_box(s, Inches(0.6), Inches(6.5), Inches(12), Inches(0.3),
+         "Output: Structured JSON test cases with ID, title, steps, expected result, priority, confidence score, and Jira traceability.",
+         size=13, color=GRAY, italic=True)
+slide_num(s, 7)
 
 
 # ══════════════════════════════════════════════════════════════
 # SLIDE 8 — MODULE 4: AUTOMATION SCRIPT AGENT
 # ══════════════════════════════════════════════════════════════
-slide = prs.slides.add_slide(prs.slide_layouts[6])
-add_bg(slide, DARK_BG)
-slide_header(slide, "Module 4: Automation Script Agent", "From Test Cases to Executable Code", 8)
+s = new_slide()
+add_title(s, "Module 4: Automation Script Agent")
+add_subtitle(s, "Converting approved test cases into production-quality executable code")
 
-add_card(slide, Inches(0.5), Inches(1.5), Inches(3.9), Inches(2.5),
-         "CODE GENERATION", [
-             "UI → Playwright / Selenium",
-             "API → REST Assured / Supertest",
-             "DB → Parameterized SQL queries",
-             "Follows Page Object Model",
-             "Uses stable locators (data-testid)",
-         ], accent=ACCENT_TEAL)
+section_box(s, Inches(0.6), Inches(1.6), Inches(3.7), Inches(2.8),
+    "Code Generation", [
+        "UI tests: Playwright / Selenium",
+        "API tests: REST Assured / Supertest",
+        "DB tests: Parameterized SQL queries",
+        "Follows Page Object Model (POM)",
+        "Uses stable locators (data-testid)",
+        "Explicit waits, no hard-coded sleeps",
+        "Parameterized test data, not embedded",
+    ])
 
-add_card(slide, Inches(4.7), Inches(1.5), Inches(3.9), Inches(2.5),
-         "QUALITY CHECKS", [
-             "Syntax valid — compiles clean",
-             "Locators robust (score >= 7/10)",
-             "Assertions match expected results",
-             "No hard-coded waits (sleep)",
-             "POM structure compliance",
-         ], accent=LIGHT_BLUE)
+section_box(s, Inches(4.6), Inches(1.6), Inches(3.7), Inches(2.8),
+    "Quality Validation", [
+        "Syntax check -- must compile clean",
+        "Locators -- robustness score >= 7/10",
+        "Assertions match every expected result",
+        "POM structure compliance check",
+        "No hard-coded waits (sleep/timeout)",
+        "ESLint / static analysis passes",
+        "Test data is externalized",
+    ])
 
-add_card(slide, Inches(8.9), Inches(1.5), Inches(3.9), Inches(2.5),
-         "SELF-HEALING", [
-             "Broken locator → find by text/role",
-             "App flow changed → regenerate script",
-             "Auto-heal confidence > 0.8 → apply",
-             "Auto-heal confidence < 0.8 → flag",
-             "Recovery: minutes, not hours",
-         ], accent=GREEN_OK)
+section_box(s, Inches(8.6), Inches(1.6), Inches(3.7), Inches(2.8),
+    "Self-Healing Capability", [
+        "Broken locator: find by text/role/label",
+        "App flow changed: regenerate script",
+        "Confidence > 0.8: auto-apply fix",
+        "Confidence < 0.8: flag for human",
+        "Traditional recovery: hours to days",
+        "Self-healing recovery: seconds to min",
+        "Reduces maintenance effort by 70%",
+    ])
 
-# Locator robustness visual
-add_shape_bg(slide, Inches(0.5), Inches(4.4), Inches(12.333), Inches(2.2), RGBColor(0x0D, 0x19, 0x33))
-add_text_box(slide, Inches(0.8), Inches(4.55), Inches(5), Inches(0.4),
-             "LOCATOR ROBUSTNESS SCALE", font_size=16, color=ACCENT_TEAL, bold=True)
-
-add_table(slide, Inches(0.8), Inches(4.95), Inches(7), Inches(1.5),
-          ["Locator Strategy", "Score", "Use When"],
-          [
-              ["data-testid", "10/10 ✓", "Always preferred"],
-              ["id attribute", "8/10 ✓", "If IDs are stable"],
-              ["CSS (class-based)", "5/10 ⚠", "Risky — classes change"],
-              ["XPath (absolute)", "2/10 ✗", "Never acceptable"],
-          ])
-
-add_table(slide, Inches(8.5), Inches(4.95), Inches(4.2), Inches(1.0),
-          ["Key Metric", "Target"],
-          [
-              ["Compilation Success", ">= 95%"],
-              ["Auto-Heal Success", ">= 70%"],
-          ])
+add_table(s, Inches(0.6), Inches(4.8), Inches(12), 0.4,
+    ["Metric", "Target", "What It Validates"],
+    [
+        ["Script Compilation Success Rate", ">= 95%", "Generated code must actually compile and run"],
+        ["Locator Robustness Score (avg)", ">= 7/10", "data-testid=10, id=8, CSS=5, XPath=2 -- higher is more stable"],
+        ["POM Compliance Rate", ">= 95%", "Page classes separate from tests, locators as properties, methods for actions"],
+        ["Auto-Heal Success Rate", ">= 70%", "Broken locators/flows auto-repaired without human intervention"],
+    ])
+slide_num(s, 8)
 
 
 # ══════════════════════════════════════════════════════════════
 # SLIDE 9 — MODULE 5: EXECUTION ENGINE
 # ══════════════════════════════════════════════════════════════
-slide = prs.slides.add_slide(prs.slide_layouts[6])
-add_bg(slide, DARK_BG)
-slide_header(slide, "Module 5: Execution Engine", "Running Tests at Scale, Reliably", 9)
+s = new_slide()
+add_title(s, "Module 5: Execution Engine")
+add_subtitle(s, "Running tests at scale, reliably, across environments")
 
-add_card(slide, Inches(0.5), Inches(1.5), Inches(3.9), Inches(2.2),
-         "WHAT IT DOES", [
-             "Execute across Chrome, Firefox, Edge",
-             "Parallel execution (10x workers)",
-             "Environment management (QA/Stage)",
-             "CI/CD pipeline integration",
-         ], accent=ACCENT_TEAL)
+section_box(s, Inches(0.6), Inches(1.6), Inches(3.7), Inches(2.5),
+    "What It Does", [
+        "Execute across Chrome, Firefox, Edge",
+        "Parallel execution (10 workers = 10x)",
+        "Environment mgmt (QA, Staging, Prod)",
+        "CI/CD integration (Jenkins, GH Actions)",
+        "Capture screenshots, logs, videos",
+    ])
 
-add_card(slide, Inches(4.7), Inches(1.5), Inches(3.9), Inches(2.2),
-         "RETRY POLICY", [
-             "Element not found → retry 2x",
-             "Network timeout → retry 3x + backoff",
-             "Browser crash → restart + retry 2x",
-             "Assertion failure → NO retry (real bug)",
-         ], accent=ORANGE_WARN)
+section_box(s, Inches(4.6), Inches(1.6), Inches(3.7), Inches(2.5),
+    "Retry Policy", [
+        "Element not found: retry 2x, extend wait",
+        "Network timeout: retry 3x, exp. backoff",
+        "Browser crash: restart browser, retry 2x",
+        "Auth expired: refresh token, retry 1x",
+        "Assertion failure: NO retry (real bug!)",
+    ])
 
-add_card(slide, Inches(8.9), Inches(1.5), Inches(3.9), Inches(2.2),
-         "CHAOS TESTING", [
-             "Kill browser mid-test → partial save",
-             "Network disconnect → retry + alert",
-             "Memory pressure → clean shutdown",
-             "Grid node removed → redistribute",
-         ], accent=RED_ALERT)
+section_box(s, Inches(8.6), Inches(1.6), Inches(3.7), Inches(2.5),
+    "Chaos Testing", [
+        "Kill browser mid-test: partial results saved",
+        "Network disconnect: retry + clear error log",
+        "Disk full: graceful error, no silent loss",
+        "Memory pressure: clean shutdown + alert",
+        "Grid node removed: redistribute to others",
+    ])
 
-# Metrics
-add_table(slide, Inches(0.5), Inches(4.1), Inches(12.333), Inches(2.2),
-          ["Metric", "Target", "Alert Threshold"],
-          [
-              ["Execution Success Rate", ">= 90%", "< 85%"],
-              ["Flakiness %", "< 5%", "> 10%"],
-              ["Retry Recovery Rate", ">= 60%", "< 40%"],
-              ["Parallel Efficiency", ">= 70%", "< 50%"],
-              ["Avg Execution Time / Test", "< 45 seconds", "> 90 seconds"],
-          ])
+add_table(s, Inches(0.6), Inches(4.5), Inches(12), 0.4,
+    ["Metric", "Target", "Alert", "What It Means"],
+    [
+        ["Execution Success Rate", ">= 90%", "< 85%", "Percentage of tests that pass"],
+        ["Flakiness %", "< 5%", "> 10%", "Tests that flip pass/fail on same code"],
+        ["Retry Recovery Rate", ">= 60%", "< 40%", "Tests that pass on retry (transient failures)"],
+        ["Parallel Efficiency", ">= 70%", "< 50%", "Actual speedup vs theoretical max"],
+        ["Avg Execution Time", "< 45 sec", "> 90 sec", "Mean duration per test script"],
+    ])
+slide_num(s, 9)
 
 
 # ══════════════════════════════════════════════════════════════
 # SLIDE 10 — MODULE 6: RESULTS & RCA
 # ══════════════════════════════════════════════════════════════
-slide = prs.slides.add_slide(prs.slide_layouts[6])
-add_bg(slide, DARK_BG)
-slide_header(slide, "Module 6: Results & RCA Agent", "From Failures to Root Causes to Jira Defects", 10)
+s = new_slide()
+add_title(s, "Module 6: Results & RCA Agent")
+add_subtitle(s, "From test failures to root causes to Jira defects -- closing the loop")
 
-add_card(slide, Inches(0.5), Inches(1.5), Inches(3.9), Inches(2.0),
-         "EVIDENCE CAPTURE", [
-             "Console & server logs",
-             "Screenshot at failure point",
-             "Video recording of full test",
-             "Network HAR trace + DOM snapshot",
-         ], accent=ACCENT_TEAL)
+section_box(s, Inches(0.6), Inches(1.6), Inches(3.7), Inches(2.5),
+    "Evidence Capture", [
+        "Console logs (browser + server)",
+        "Screenshot at exact failure point",
+        "Video recording of full test run",
+        "Network HAR trace",
+        "DOM snapshot at failure moment",
+    ])
 
-add_card(slide, Inches(4.7), Inches(1.5), Inches(3.9), Inches(2.0),
-         "RCA CLASSIFICATION", [
-             "Assertion mismatch → App Bug",
-             "Element not found → Locator Issue",
-             "HTTP 500 → Backend Bug",
-             "Timeout → Infra Issue",
-         ], accent=LIGHT_BLUE)
+section_box(s, Inches(4.6), Inches(1.6), Inches(3.7), Inches(2.5),
+    "Root Cause Classification", [
+        "Assertion mismatch --> App Bug",
+        "Element not found --> Locator Issue",
+        "HTTP 500 in logs --> Backend Bug",
+        "Timeout, no response --> Infra Issue",
+        "Script syntax error --> Script Bug",
+    ])
 
-add_card(slide, Inches(8.9), Inches(1.5), Inches(3.9), Inches(2.0),
-         "AUTO JIRA DEFECTS", [
-             "Bug title + steps to reproduce",
-             "Evidence attached (screenshots, logs)",
-             "Severity mapped from test priority",
-             "Duplicate detection (fingerprinting)",
-         ], accent=PURPLE)
+section_box(s, Inches(8.6), Inches(1.6), Inches(3.7), Inches(2.5),
+    "Auto Jira Defect Creation", [
+        "Title + steps to reproduce from TC",
+        "Evidence attached (screenshot, video)",
+        "Severity mapped from test priority",
+        "Linked to original Jira story",
+        "Duplicate detection (fingerprinting)",
+    ])
 
-# Key metrics + false positive table
-add_shape_bg(slide, Inches(0.5), Inches(3.9), Inches(12.333), Inches(2.7), RGBColor(0x0D, 0x19, 0x33))
+text_box(s, Inches(0.6), Inches(4.4), Inches(12), Inches(0.4),
+         "Critical: False Positive Filtering", size=16, color=BLUE, bold=True)
+bullet_list(s, Inches(0.6), Inches(4.75), Inches(11), [
+    "Infra failures are NOT filed as app bugs -- saves developer time",
+    "Flaky tests (pass on retry) are NOT filed as bugs -- reduces noise",
+    "Environment config issues are classified separately -- prevents false alarms",
+    "Only confirmed application bugs create Jira defects -- keeps backlog clean",
+], size=14)
 
-add_table(slide, Inches(0.8), Inches(4.1), Inches(5.5), Inches(1.5),
-          ["Metric", "Target"],
-          [
-              ["RCA Accuracy %", ">= 80%"],
-              ["False Positive Rate", "< 10%"],
-              ["Evidence Completeness", ">= 98%"],
-              ["Correct Severity Assignment", ">= 90%"],
-          ])
-
-add_text_box(slide, Inches(7.0), Inches(4.2), Inches(5.5), Inches(0.4),
-             "FALSE POSITIVE FILTERING", font_size=16, color=ORANGE_WARN, bold=True)
-add_text_box(slide, Inches(7.0), Inches(4.7), Inches(5.5), Inches(1.5),
-             "▸  Infra failure → NOT filed as app bug\n"
-             "▸  Flaky test (passes on retry) → NOT filed\n"
-             "▸  Environment config error → NOT filed\n"
-             "▸  Only real app bugs create Jira defects",
-             font_size=14, color=RGBColor(0xCC, 0xCC, 0xCC))
+add_table(s, Inches(0.6), Inches(6.05), Inches(8), 0.35,
+    ["Metric", "Target"],
+    [
+        ["RCA Accuracy %", ">= 80% (validated against golden failure dataset)"],
+        ["False Positive Rate", "< 10% of auto-created defects"],
+    ])
+slide_num(s, 10)
 
 
 # ══════════════════════════════════════════════════════════════
 # SLIDE 11 — AI METRICS FRAMEWORK
 # ══════════════════════════════════════════════════════════════
-slide = prs.slides.add_slide(prs.slide_layouts[6])
-add_bg(slide, DARK_BG)
-slide_header(slide, "Module 7: AI Metrics Framework", '"AI quality is measured, not assumed"', 11)
+s = new_slide()
+add_title(s, "Module 7: AI Metrics Framework")
+add_subtitle(s, "AI quality is measured, not assumed -- every AI decision has a quality score")
 
-# Four metric cards
-metrics = [
-    ("Requirement\nAccuracy", ">= 85%", "How well AC is extracted\nvs golden dataset", ACCENT_TEAL),
-    ("Test Coverage\nScore", ">= 85%", "Positive + Negative +\nEdge case completeness", LIGHT_BLUE),
-    ("Hallucination\nRate", "< 5%", "AI-invented content\nwith no source in story", RED_ALERT),
-    ("Decision\nConfidence", ">= 0.85", "Agent self-reported\ncertainty per output", ACCENT_BLUE),
-]
+add_table(s, Inches(0.6), Inches(1.6), Inches(12), 0.5,
+    ["AI Metric", "What It Measures", "How We Measure", "Target"],
+    [
+        ["Requirement Accuracy", "How well the agent extracts acceptance criteria", "Compare output vs human-verified golden dataset", ">= 85%"],
+        ["Test Coverage Score", "How thoroughly TCs cover all scenarios", "Weighted: positive (40%) + negative (35%) + edge (25%)", ">= 85%"],
+        ["Hallucination Rate", "AI content with no basis in input data", "Trace every output item to source; no mapping = hallucination", "< 5%"],
+        ["Decision Confidence", "Agent's self-reported certainty", "Score 0.0-1.0 emitted with every output", ">= 0.85 avg"],
+    ])
 
-for i, (title, target, desc, color) in enumerate(metrics):
-    x = Inches(0.5) + Inches(i * 3.15)
-    add_shape_bg(slide, x, Inches(1.5), Inches(2.95), Inches(2.7), RGBColor(0x1A, 0x2A, 0x44))
-    add_shape_bg(slide, x, Inches(1.5), Inches(2.95), Inches(0.05), color)
-    add_text_box(slide, x + Inches(0.15), Inches(1.7), Inches(2.65), Inches(0.65),
-                 title, font_size=16, color=WHITE, bold=True)
-    add_text_box(slide, x + Inches(0.15), Inches(2.4), Inches(2.65), Inches(0.5),
-                 target, font_size=28, color=color, bold=True)
-    add_text_box(slide, x + Inches(0.15), Inches(3.0), Inches(2.65), Inches(0.8),
-                 desc, font_size=12, color=RGBColor(0xBB, 0xBB, 0xBB))
+text_box(s, Inches(0.6), Inches(3.9), Inches(12), Inches(0.4),
+         "Confidence-Based Routing (How the system uses these metrics):", size=16, color=BLUE, bold=True)
 
-# Confidence routing
-add_shape_bg(slide, Inches(0.5), Inches(4.6), Inches(12.333), Inches(2.0), RGBColor(0x0D, 0x19, 0x33))
-add_text_box(slide, Inches(0.8), Inches(4.75), Inches(5), Inches(0.4),
-             "CONFIDENCE-BASED ROUTING", font_size=16, color=ACCENT_TEAL, bold=True)
+add_table(s, Inches(0.6), Inches(4.35), Inches(12), 0.4,
+    ["Confidence Score", "What Happens", "Human Involvement"],
+    [
+        [">= 0.85", "Auto-proceed to next agent -- no delay", "None required"],
+        ["0.70 - 0.84", "Proceed but flag for optional review", "Optional -- QA can review if available"],
+        ["< 0.70", "BLOCK pipeline -- require human approval before continuing", "Mandatory -- must approve or reject"],
+    ])
 
-add_table(slide, Inches(0.8), Inches(5.2), Inches(11.5), Inches(1.2),
-          ["Confidence Score", "Routing Decision", "Human Involvement"],
-          [
-              [">= 0.85", "Auto-proceed to next agent", "None"],
-              ["0.70 – 0.84", "Proceed with flag for optional review", "Optional"],
-              ["< 0.70", "BLOCK — Require human approval", "Mandatory"],
-          ])
+text_box(s, Inches(0.6), Inches(5.65), Inches(12), Inches(0.4),
+         "Why this matters:", size=16, color=BLUE, bold=True)
+
+bullet_list(s, Inches(0.6), Inches(5.95), Inches(11), [
+    "Without this framework, we're trusting AI blindly -- no way to know if quality is improving or degrading",
+    "Golden datasets provide ground truth -- not opinions, but empirical data",
+    "Trends over time prove the feedback loop is working (or expose when it isn't)",
+    "Enables compliance: every AI decision has a measurable quality score in the audit trail",
+], size=14)
+slide_num(s, 11)
 
 
 # ══════════════════════════════════════════════════════════════
 # SLIDE 12 — EXECUTION METRICS
 # ══════════════════════════════════════════════════════════════
-slide = prs.slides.add_slide(prs.slide_layouts[6])
-add_bg(slide, DARK_BG)
-slide_header(slide, "Automation Execution Metrics", "Measuring Runtime Performance & Stability", 12)
+s = new_slide()
+add_title(s, "Automation Execution Metrics")
+add_subtitle(s, "AI metrics tell us: are we generating the right tests?  Execution metrics tell us: are they running reliably?")
 
-# Execution metrics
-add_card(slide, Inches(0.5), Inches(1.5), Inches(5.8), Inches(2.3),
-         "EXECUTION METRICS", [
-             "Pass / Fail Rate — target >= 90% pass",
-             "Retry Recovery Rate — target >= 60%",
-             "Avg Execution Time — target < 45s per test",
-             "Parallel Efficiency — target >= 70%",
-             "Suite Completion Rate — target >= 98%",
-         ], accent=ACCENT_TEAL)
+section_box(s, Inches(0.6), Inches(1.6), Inches(5.7), Inches(2.2),
+    "Execution Metrics", [
+        "Pass / Fail Rate -- target >= 90% (with failure classification)",
+        "Retry Recovery Rate -- target >= 60% (transient vs real failures)",
+        "Avg Execution Time per Test -- target < 45 seconds",
+        "Parallel Efficiency -- target >= 70% of theoretical speedup",
+        "Suite Completion Rate -- target >= 98%",
+    ])
 
-# Stability metrics
-add_card(slide, Inches(6.8), Inches(1.5), Inches(5.8), Inches(2.3),
-         "STABILITY METRICS", [
-             "Flaky Test Rate — target < 5%",
-             "  Root: timing 45%, data 25%, env 20%, order 10%",
-             "Auto-Heal Success — target >= 70%",
-             "Script Regeneration Success — target >= 80%",
-             "Reduce flakiness by 20%/month goal",
-         ], accent=GREEN_OK)
+section_box(s, Inches(6.7), Inches(1.6), Inches(5.7), Inches(2.2),
+    "Stability Metrics", [
+        "Flaky Test Rate -- target < 5% (root: timing 45%, data 25%, env 20%)",
+        "Auto-Heal Success -- target >= 70% of broken locators fixed",
+        "Script Regen Success -- target >= 80% when app flow changes",
+        "Reduce flakiness by 20% each month until < 2%",
+        "Track per-test flakiness history over last 10 runs",
+    ])
 
-# Correlation insight
-add_shape_bg(slide, Inches(0.5), Inches(4.2), Inches(12.333), Inches(2.4), RGBColor(0x0D, 0x19, 0x33))
-add_text_box(slide, Inches(0.8), Inches(4.35), Inches(5), Inches(0.4),
-             "CORRELATION INSIGHTS", font_size=16, color=ORANGE_WARN, bold=True)
+text_box(s, Inches(0.6), Inches(4.2), Inches(12), Inches(0.4),
+         "Correlation Analysis (the real insight):", size=16, color=BLUE, bold=True)
 
-add_table(slide, Inches(0.8), Inches(4.8), Inches(11.5), Inches(1.6),
-          ["AI Quality", "Execution Quality", "Diagnosis", "Action"],
-          [
-              ["High Accuracy", "Low Pass Rate", "Environment / Infra problem", "Fix infra, not tests"],
-              ["Low Accuracy", "High Pass Rate", "Coverage gap — wrong things tested", "Improve AI prompts"],
-              ["High Hallucination", "High Pass Rate", "False confidence", "Audit test cases"],
-          ])
+add_table(s, Inches(0.6), Inches(4.6), Inches(12), 0.45,
+    ["AI Quality", "Execution Quality", "What This Means", "Action to Take"],
+    [
+        ["High accuracy", "Low pass rate", "Environment / infrastructure problem", "Fix infra, not the tests"],
+        ["Low accuracy", "High pass rate", "Coverage gap -- tests pass but miss real bugs", "Improve AI prompts and golden datasets"],
+        ["High hallucination", "High pass rate", "False confidence -- invented tests happen to pass", "Audit test cases against actual requirements"],
+        ["Low confidence", "Low pass rate", "Expected -- agent knew it was uncertain", "Route low-confidence items to human review"],
+    ])
+slide_num(s, 12)
 
 
 # ══════════════════════════════════════════════════════════════
 # SLIDE 13 — SUPERVISOR AGENT
 # ══════════════════════════════════════════════════════════════
-slide = prs.slides.add_slide(prs.slide_layouts[6])
-add_bg(slide, DARK_BG)
-slide_header(slide, "Supervisor / Orchestrator Agent", '"This agent makes the system truly autonomous"', 13)
+s = new_slide()
+add_title(s, "Supervisor / Orchestrator Agent")
+add_subtitle(s, "This agent makes the system truly autonomous")
 
-add_card(slide, Inches(0.5), Inches(1.5), Inches(3.9), Inches(2.3),
-         "COORDINATES", [
-             "Agent A finishes → trigger Agent B",
-             "Pass outputs between agents",
-             "Manage execution dependencies",
-             "Handle concurrent pipelines",
-         ], accent=ACCENT_TEAL)
+section_box(s, Inches(0.6), Inches(1.6), Inches(3.7), Inches(2.7),
+    "Coordinates All Agents", [
+        "Agent A finishes --> trigger Agent B",
+        "Pass outputs between agents correctly",
+        "Manage dependencies and ordering",
+        "Handle concurrent pipelines (20+ stories)",
+        "Persist state for crash recovery",
+    ])
 
-add_card(slide, Inches(4.7), Inches(1.5), Inches(3.9), Inches(2.3),
-         "DECIDES", [
-             ">= 0.85 confidence → Auto-proceed",
-             "0.70–0.84 → Proceed with flag",
-             "< 0.70 → Escalate to human",
-             "Retry vs Skip vs Abort logic",
-         ], accent=LIGHT_BLUE)
+section_box(s, Inches(4.6), Inches(1.6), Inches(3.7), Inches(2.7),
+    "Makes System-Level Decisions", [
+        "Confidence >= 0.85: auto-proceed",
+        "Confidence 0.70-0.84: proceed + flag",
+        "Confidence < 0.70: block, escalate",
+        "Timeout: retry with backoff (max 3)",
+        "Fatal error: skip + alert operator",
+    ])
 
-add_card(slide, Inches(8.9), Inches(1.5), Inches(3.9), Inches(2.3),
-         "ESCALATES", [
-             "Low confidence on P0 story",
-             "3+ consecutive agent failures",
-             "Hallucination detected",
-             "Auto-created Blocker defect",
-         ], accent=RED_ALERT)
+section_box(s, Inches(8.6), Inches(1.6), Inches(3.7), Inches(2.7),
+    "Human-in-Loop Escalation", [
+        "Low confidence on P0/critical story",
+        "3+ consecutive agent failures",
+        "Hallucination rate spikes above 10%",
+        "Auto-created Blocker severity defect",
+        "Channels: Slack, email, Jira, PagerDuty",
+    ])
 
-# Metrics + Pipeline state
-add_shape_bg(slide, Inches(0.5), Inches(4.2), Inches(5.8), Inches(2.4), RGBColor(0x0D, 0x19, 0x33))
-add_text_box(slide, Inches(0.8), Inches(4.35), Inches(5), Inches(0.4),
-             "PIPELINE STATES", font_size=16, color=ACCENT_TEAL, bold=True)
-add_text_box(slide, Inches(0.8), Inches(4.8), Inches(5.2), Inches(1.5),
-             "INGESTING → INTERPRETING → DESIGNING\n"
-             "    → SCRIPTING → EXECUTING → ANALYZING\n"
-             "        → REPORTING → COMPLETE\n\n"
-             "Each transition: logged, audited, reversible",
-             font_size=14, color=RGBColor(0xCC, 0xCC, 0xCC))
+text_box(s, Inches(0.6), Inches(4.7), Inches(12), Inches(0.4),
+         "Pipeline States:", size=16, color=BLUE, bold=True)
+text_box(s, Inches(0.6), Inches(5.1), Inches(12), Inches(0.5),
+         "INGESTING  -->  INTERPRETING  -->  DESIGNING  -->  SCRIPTING  -->  EXECUTING  -->  ANALYZING  -->  REPORTING  -->  COMPLETE",
+         size=16, color=DARK, bold=True, align=PP_ALIGN.CENTER)
+text_box(s, Inches(0.6), Inches(5.55), Inches(12), Inches(0.3),
+         "Each state transition is logged with timestamp, input, confidence, and decision rationale. Full audit trail.",
+         size=13, color=GRAY, italic=True, align=PP_ALIGN.CENTER)
 
-add_shape_bg(slide, Inches(6.8), Inches(4.2), Inches(5.8), Inches(2.4), RGBColor(0x0D, 0x19, 0x33))
-add_text_box(slide, Inches(7.1), Inches(4.35), Inches(5), Inches(0.4),
-             "KEY METRICS", font_size=16, color=ACCENT_TEAL, bold=True)
-add_table(slide, Inches(7.1), Inches(4.8), Inches(5.2), Inches(1.2),
-          ["Metric", "Target"],
-          [
-              ["Decision Accuracy", ">= 95%"],
-              ["Pipeline Completion Rate", ">= 95%"],
-              ["Escalation Rate", "< 15%"],
-          ])
+add_table(s, Inches(0.6), Inches(6.0), Inches(8), 0.35,
+    ["Metric", "Target"],
+    [
+        ["Decision Accuracy", ">= 95% (validated against decision golden dataset)"],
+        ["Pipeline Completion Rate", ">= 95% of pipelines reach COMPLETE state"],
+        ["Escalation Rate", "< 15% (too high = alert fatigue, too low = blind trust)"],
+    ])
+slide_num(s, 13)
 
 
 # ══════════════════════════════════════════════════════════════
 # SLIDE 14 — FEEDBACK LOOP
 # ══════════════════════════════════════════════════════════════
-slide = prs.slides.add_slide(prs.slide_layouts[6])
-add_bg(slide, DARK_BG)
-slide_header(slide, "Feedback Loop & Continuous Learning", "The System Gets Better Over Time", 14)
+s = new_slide()
+add_title(s, "Feedback Loop & Continuous Learning")
+add_subtitle(s, "The system gets measurably better over time")
 
-# The loop visual
-add_shape_bg(slide, Inches(0.5), Inches(1.5), Inches(12.333), Inches(1.2), RGBColor(0x0D, 0x19, 0x33))
-add_text_box(slide, Inches(0.8), Inches(1.55), Inches(12), Inches(0.4),
-             "THE LEARNING LOOP", font_size=18, color=ACCENT_TEAL, bold=True)
-add_text_box(slide, Inches(0.8), Inches(2.0), Inches(12), Inches(0.5),
-             "Execution Results   →   Metrics Analysis   →   Prompt Tuning   →   Better Output   →   Repeat",
-             font_size=20, color=WHITE, bold=True, alignment=PP_ALIGN.CENTER)
+# The loop
+shape = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.6), Inches(1.5), Inches(12), Inches(0.8))
+shape.fill.solid(); shape.fill.fore_color.rgb = RGBColor(0xF7, 0xF9, 0xFC)
+shape.line.color.rgb = LIGHT_GRAY; shape.line.width = Pt(1)
+text_box(s, Inches(0.8), Inches(1.55), Inches(11.5), Inches(0.6),
+         "Execution Results   -->   Metrics Analysis   -->   Identify Weak Areas   -->   Tune Prompts   -->   Better Output   -->   Repeat",
+         size=17, color=BLUE, bold=True, align=PP_ALIGN.CENTER)
 
-# Three areas
-add_card(slide, Inches(0.5), Inches(3.0), Inches(3.9), Inches(2.2),
-         "WHAT GETS TUNED", [
-             "LLM prompts (rules, examples)",
-             "Confidence thresholds",
-             "Retry strategies",
-             "Agent decision boundaries",
-         ], accent=ACCENT_TEAL)
+section_box(s, Inches(0.6), Inches(2.6), Inches(3.7), Inches(2.5),
+    "What Gets Tuned", [
+        "LLM prompts (add rules, examples,",
+        "  constraints, few-shot samples)",
+        "Confidence thresholds (reduce false",
+        "  escalations, increase autonomy)",
+        "Retry strategies (extend waits vs",
+        "  full retry based on failure type)",
+    ])
 
-add_card(slide, Inches(4.7), Inches(3.0), Inches(3.9), Inches(2.2),
-         "TESTING STRATEGY", [
-             "Prompt regression testing",
-             "  — every change vs golden dataset",
-             "Model drift detection",
-             "  — daily canary tests",
-         ], accent=LIGHT_BLUE)
+section_box(s, Inches(4.6), Inches(2.6), Inches(3.7), Inches(2.5),
+    "Testing the Feedback Loop", [
+        "Prompt regression testing: every",
+        "  prompt change vs golden dataset",
+        "Model drift detection: daily canary",
+        "  tests detect LLM behavior shifts",
+        "Historical benchmark: monthly data",
+        "  proves improvement or exposes drift",
+    ])
 
-add_card(slide, Inches(8.9), Inches(3.0), Inches(3.9), Inches(2.2),
-         "SAFEGUARDS", [
-             "Prompt version control (Git)",
-             "Rollback in < 5 minutes",
-             "No deploy without regression pass",
-             "Monthly benchmark comparisons",
-         ], accent=PURPLE)
+section_box(s, Inches(8.6), Inches(2.6), Inches(3.7), Inches(2.5),
+    "Safeguards", [
+        "Prompt version control (Git-tracked)",
+        "Rollback to previous version < 5 min",
+        "No prompt deploy without regression",
+        "  test passing first",
+        "Monthly benchmarks: prove the loop",
+        "  is actually improving, not degrading",
+    ])
 
-# Key insight
-add_shape_bg(slide, Inches(0.5), Inches(5.6), Inches(12.333), Inches(1.0), RGBColor(0x14, 0x1E, 0x3A))
-add_text_box(slide, Inches(0.8), Inches(5.7), Inches(12), Inches(0.7),
-             "Key Insight:  Treat prompts like code — version control, test, review, deploy, rollback.\n"
-             "A one-word prompt change can shift AI behavior dramatically.",
-             font_size=15, color=ORANGE_WARN)
+text_box(s, Inches(0.6), Inches(5.4), Inches(12), Inches(0.3),
+         "Key Principle: Treat prompts like code -- version control, test, review, deploy, rollback.",
+         size=15, color=BLUE, bold=True)
+
+add_table(s, Inches(0.6), Inches(5.85), Inches(12), 0.38,
+    ["Metric", "Month 1", "Month 2", "Month 3", "Trend"],
+    [
+        ["Requirement Accuracy", "78%", "83%", "87%", "Improving (+9%)"],
+        ["Hallucination Rate", "9%", "5%", "3%", "Improving (-6%)"],
+        ["Test Coverage Score", "72%", "78%", "84%", "Improving (+12%)"],
+    ])
+slide_num(s, 14)
 
 
 # ══════════════════════════════════════════════════════════════
-# SLIDE 15 — DATA FLOW (BONUS)
+# SLIDE 15 — END-TO-END FLOW
 # ══════════════════════════════════════════════════════════════
-slide = prs.slides.add_slide(prs.slide_layouts[6])
-add_bg(slide, DARK_BG)
-slide_header(slide, "End-to-End Data Flow", "From Jira Story to Measurable Test Results", 15)
+s = new_slide()
+add_title(s, "End-to-End Data Flow")
+add_subtitle(s, "From Jira story to measured test results -- the complete pipeline")
 
-# Flow steps
-flow_steps = [
-    ("1", "JIRA\nSTORY", ACCENT_TEAL),
-    ("2", "INGEST &\nVALIDATE", ACCENT_TEAL),
-    ("3", "UNDERSTAND\nREQUIREMENTS", LIGHT_BLUE),
-    ("4", "DESIGN\nTEST CASES", LIGHT_BLUE),
-    ("5", "GENERATE\nSCRIPTS", ACCENT_BLUE),
-    ("6", "EXECUTE\nTESTS", ACCENT_BLUE),
-    ("7", "ANALYZE\n& RCA", PURPLE),
-    ("8", "METRICS &\nFEEDBACK", GREEN_OK),
+steps = [
+    ("1. Jira Story", "Input arrives"),
+    ("2. Ingest & Validate", "Parse, check, normalize"),
+    ("3. Understand Req.", "Extract AC, flag ambiguity"),
+    ("4. Design Test Cases", "Positive/negative/edge"),
+    ("5. Generate Scripts", "Playwright/Selenium code"),
+    ("6. Execute Tests", "Parallel, cross-browser"),
+    ("7. Analyze & RCA", "Root cause, evidence"),
+    ("8. Metrics & Learn", "Feedback, improve"),
 ]
 
-for i, (num, label, color) in enumerate(flow_steps):
-    x = Inches(0.4) + Inches(i * 1.6)
-    y = Inches(1.8)
-    # Circle/box
-    add_shape_bg(slide, x, y, Inches(1.35), Inches(1.5), RGBColor(0x1A, 0x2A, 0x44))
-    add_shape_bg(slide, x, y, Inches(1.35), Inches(0.05), color)
-    add_text_box(slide, x, y + Inches(0.15), Inches(1.35), Inches(0.35),
-                 num, font_size=22, color=color, bold=True, alignment=PP_ALIGN.CENTER)
-    add_text_box(slide, x + Inches(0.05), y + Inches(0.55), Inches(1.25), Inches(0.8),
-                 label, font_size=12, color=WHITE, bold=True, alignment=PP_ALIGN.CENTER)
-    # Arrow
-    if i < len(flow_steps) - 1:
-        add_text_box(slide, x + Inches(1.35), y + Inches(0.5), Inches(0.3), Inches(0.4),
-                     "→", font_size=22, color=MID_GRAY, alignment=PP_ALIGN.CENTER)
+y = Inches(1.5)
+for i, (name, desc) in enumerate(steps):
+    x = Inches(0.4) + Inches(i * 1.58)
+    shape = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, x, y, Inches(1.4), Inches(1.3))
+    shape.fill.solid()
+    shape.fill.fore_color.rgb = RGBColor(0xF7, 0xF9, 0xFC)
+    shape.line.color.rgb = LIGHT_GRAY; shape.line.width = Pt(1)
+    text_box(s, x + Inches(0.05), y + Inches(0.1), Inches(1.3), Inches(0.5),
+             name, size=11, color=BLUE, bold=True, align=PP_ALIGN.CENTER)
+    text_box(s, x + Inches(0.05), y + Inches(0.65), Inches(1.3), Inches(0.5),
+             desc, size=10, color=GRAY, align=PP_ALIGN.CENTER)
+    if i < len(steps) - 1:
+        text_box(s, x + Inches(1.4), y + Inches(0.35), Inches(0.2), Inches(0.3),
+                 ">", size=16, color=BLUE, bold=True, align=PP_ALIGN.CENTER)
 
-# What happens at each step
-add_shape_bg(slide, Inches(0.5), Inches(3.7), Inches(12.333), Inches(2.8), RGBColor(0x0D, 0x19, 0x33))
+text_box(s, Inches(0.6), Inches(3.1), Inches(12), Inches(0.4),
+         "At Every Step:", size=16, color=BLUE, bold=True)
 
-details = [
-    ("At Each Step:", ACCENT_TEAL, [
-        "Input validated against schema",
-        "Output carries confidence score",
-        "Supervisor monitors and decides",
-        "Metrics captured for dashboard",
-    ]),
-    ("Quality Gates:", GREEN_OK, [
-        "Confidence < 0.70 → Human review",
-        "Hallucination detected → Pipeline pause",
-        "Compilation fails → Auto-retry/regen",
-        "RCA flags infra → No false bug filed",
-    ]),
-    ("Feedback:", PURPLE, [
-        "Every result feeds back to prompts",
-        "Model drift detected by daily canaries",
-        "Monthly benchmarks track improvement",
-        "Golden datasets provide ground truth",
-    ]),
-]
+bullet_list(s, Inches(0.6), Inches(3.45), Inches(5.5), [
+    "Input validated against schema before processing",
+    "Output carries a confidence score (0.0 - 1.0)",
+    "Supervisor monitors progress and decides next action",
+    "Metrics captured and sent to dashboard in real time",
+], size=13)
 
-for i, (title, color, items) in enumerate(details):
-    x = Inches(0.8) + Inches(i * 4.1)
-    add_text_box(slide, x, Inches(3.85), Inches(3.8), Inches(0.4),
-                 title, font_size=15, color=color, bold=True)
-    y = Inches(4.3)
-    for item in items:
-        add_text_box(slide, x, y, Inches(3.8), Inches(0.3),
-                     "▸  " + item, font_size=12, color=RGBColor(0xBB, 0xBB, 0xBB))
-        y += Inches(0.3)
+text_box(s, Inches(6.7), Inches(3.1), Inches(6), Inches(0.4),
+         "Quality Gates at Each Boundary:", size=16, color=BLUE, bold=True)
+
+bullet_list(s, Inches(6.7), Inches(3.45), Inches(5.5), [
+    "Confidence < 0.70: pipeline pauses for human review",
+    "Hallucination detected: alert + investigation triggered",
+    "Compilation failure: auto-retry with different strategy",
+    "RCA classifies infra issue: no false bug filed in Jira",
+], size=13)
+
+# Summary row
+shape = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.6), Inches(5.3), Inches(12), Inches(0.6))
+shape.fill.solid(); shape.fill.fore_color.rgb = RGBColor(0xF7, 0xF9, 0xFC)
+shape.line.color.rgb = LIGHT_GRAY; shape.line.width = Pt(1)
+text_box(s, Inches(0.8), Inches(5.35), Inches(11.5), Inches(0.5),
+         "The feedback arrow: Step 8 results feed back into Steps 2-5, tuning prompts and thresholds so the next cycle is measurably better.",
+         size=14, color=DARK, italic=True, align=PP_ALIGN.CENTER)
+
+slide_num(s, 15)
 
 
 # ══════════════════════════════════════════════════════════════
 # SLIDE 16 — COMPLETE METRICS DASHBOARD
 # ══════════════════════════════════════════════════════════════
-slide = prs.slides.add_slide(prs.slide_layouts[6])
-add_bg(slide, DARK_BG)
-slide_header(slide, "Complete Metrics Dashboard", "AI Quality + Execution Quality + Operations", 16)
+s = new_slide()
+add_title(s, "Complete Metrics Dashboard")
+add_subtitle(s, "All metrics in one view -- AI quality, execution quality, and operations")
 
-# AI metrics
-add_text_box(slide, Inches(0.5), Inches(1.5), Inches(4), Inches(0.4),
-             "AI QUALITY METRICS", font_size=16, color=ACCENT_TEAL, bold=True)
-add_table(slide, Inches(0.5), Inches(1.95), Inches(5.8), Inches(1.6),
-          ["Metric", "Target", "Status"],
-          [
-              ["Requirement Accuracy", ">= 85%", "87.3% ✓"],
-              ["Test Coverage Score", ">= 85%", "83.6% ⚠"],
-              ["Hallucination Rate", "< 5%", "3.2% ✓"],
-              ["Decision Confidence", ">= 0.85", "0.88 ✓"],
-          ])
+text_box(s, Inches(0.6), Inches(1.5), Inches(5), Inches(0.35),
+         "AI Quality Metrics", size=15, color=BLUE, bold=True)
+add_table(s, Inches(0.6), Inches(1.85), Inches(5.7), 0.35,
+    ["Metric", "Target", "Current"],
+    [
+        ["Requirement Accuracy", ">= 85%", "87.3%"],
+        ["Test Coverage Score", ">= 85%", "83.6%"],
+        ["Hallucination Rate", "< 5%", "3.2%"],
+        ["Decision Confidence", ">= 0.85", "0.88"],
+    ])
 
-# Execution metrics
-add_text_box(slide, Inches(6.8), Inches(1.5), Inches(4), Inches(0.4),
-             "EXECUTION METRICS", font_size=16, color=LIGHT_BLUE, bold=True)
-add_table(slide, Inches(6.8), Inches(1.95), Inches(5.8), Inches(1.6),
-          ["Metric", "Target", "Status"],
-          [
-              ["Pass Rate", ">= 90%", "88.4% ⚠"],
-              ["Flakiness", "< 5%", "4.6% ✓"],
-              ["Auto-Heal Success", ">= 70%", "73% ✓"],
-              ["Parallel Efficiency", ">= 70%", "83% ✓"],
-          ])
+text_box(s, Inches(6.7), Inches(1.5), Inches(5), Inches(0.35),
+         "Execution Metrics", size=15, color=BLUE, bold=True)
+add_table(s, Inches(6.7), Inches(1.85), Inches(5.7), 0.35,
+    ["Metric", "Target", "Current"],
+    [
+        ["Pass Rate", ">= 90%", "88.4%"],
+        ["Flakiness", "< 5%", "4.6%"],
+        ["Auto-Heal Success", ">= 70%", "73%"],
+        ["Parallel Efficiency", ">= 70%", "83%"],
+    ])
 
-# Operations metrics
-add_text_box(slide, Inches(0.5), Inches(3.9), Inches(4), Inches(0.4),
-             "OPERATIONS METRICS", font_size=16, color=PURPLE, bold=True)
-add_table(slide, Inches(0.5), Inches(4.35), Inches(5.8), Inches(1.2),
-          ["Metric", "Target", "Status"],
-          [
-              ["Pipeline Completion", ">= 95%", "96.2% ✓"],
-              ["Mean Time per Story", "< 15 min", "12 min ✓"],
-              ["Escalation Rate", "< 15%", "12% ✓"],
-          ])
+text_box(s, Inches(0.6), Inches(3.7), Inches(5), Inches(0.35),
+         "Operations Metrics", size=15, color=BLUE, bold=True)
+add_table(s, Inches(0.6), Inches(4.05), Inches(5.7), 0.35,
+    ["Metric", "Target", "Current"],
+    [
+        ["Pipeline Completion", ">= 95%", "96.2%"],
+        ["Mean Time per Story", "< 15 min", "12 min"],
+        ["Escalation Rate", "< 15%", "12%"],
+    ])
 
-# Trend
-add_text_box(slide, Inches(6.8), Inches(3.9), Inches(4), Inches(0.4),
-             "LEARNING TREND (3 MONTHS)", font_size=16, color=GREEN_OK, bold=True)
-add_table(slide, Inches(6.8), Inches(4.35), Inches(5.8), Inches(1.2),
-          ["Metric", "Month 1", "Month 3", "Trend"],
-          [
-              ["Req Accuracy", "78%", "87%", "▲ +9%"],
-              ["Hallucination", "9%", "3%", "▼ -6% ✓"],
-              ["Pass Rate", "80%", "89%", "▲ +9%"],
-          ])
+text_box(s, Inches(6.7), Inches(3.7), Inches(5), Inches(0.35),
+         "3-Month Learning Trend", size=15, color=BLUE, bold=True)
+add_table(s, Inches(6.7), Inches(4.05), Inches(5.7), 0.35,
+    ["Metric", "Month 1", "Month 3", "Change"],
+    [
+        ["Requirement Accuracy", "78%", "87%", "+9%"],
+        ["Hallucination Rate", "9%", "3%", "-6%"],
+        ["Pass Rate", "80%", "89%", "+9%"],
+    ])
 
-# Bottom insight
-add_shape_bg(slide, Inches(0.5), Inches(5.9), Inches(12.333), Inches(0.7), RGBColor(0x14, 0x1E, 0x3A))
-add_text_box(slide, Inches(0.8), Inches(5.95), Inches(12), Inches(0.5),
-             "Every metric has: a target, an alert threshold, an associated action, and a trend line.",
-             font_size=15, color=ORANGE_WARN, bold=True)
+text_box(s, Inches(0.6), Inches(5.5), Inches(12), Inches(0.3),
+         "Every metric has: a target, an alert threshold, an associated corrective action, and a trend line. No vanity metrics.",
+         size=14, color=GRAY, italic=True)
+slide_num(s, 16)
 
 
 # ══════════════════════════════════════════════════════════════
-# SLIDE 17 — CLOSING SLIDE
+# SLIDE 17 — CLOSING
 # ══════════════════════════════════════════════════════════════
-slide = prs.slides.add_slide(prs.slide_layouts[6])
-add_bg(slide, SECTION_BG)
-add_shape_bg(slide, Inches(0), Inches(0), SLIDE_W, SLIDE_H, RGBColor(0x00, 0x2B, 0x5C), alpha=40)
-add_shape_bg(slide, Inches(0), Inches(0), SLIDE_W, Inches(0.06), ACCENT_TEAL)
+s = new_slide()
+add_title(s, "Architecture Value & Closing")
+add_subtitle(s, "Why this architecture is production-ready")
 
-# Benefits
-add_text_box(slide, Inches(1.0), Inches(0.6), Inches(11), Inches(0.6),
-             "Architecture Value Proposition", font_size=34, color=WHITE, bold=True)
-add_shape_bg(slide, Inches(1.0), Inches(1.2), Inches(3), Inches(0.04), ACCENT_TEAL)
+add_table(s, Inches(0.6), Inches(1.5), Inches(12), 0.5,
+    ["Benefit", "What It Means", "Evidence"],
+    [
+        ["Scalable", "10 stories or 10,000 -- same platform, no extra headcount", "Queue-based, parallel execution, independent agent scaling"],
+        ["Self-Healing", "Broken locators auto-fixed, transient failures auto-retried", "Auto-heal >= 70%, retry recovery >= 60%, script regen >= 80%"],
+        ["Trustworthy AI", "Every AI decision is measured, audited, and explainable", "Golden datasets, hallucination tracking, confidence routing, audit logs"],
+        ["Production-Ready", "CI/CD integrated, security hardened, monitoring live", "Quality gates, prompt regression in pipeline, Grafana dashboards"],
+    ])
 
-benefits = [
-    ("SCALABLE", "10 or 10,000 stories\nSame platform, no extra headcount", GREEN_OK),
-    ("SELF-HEALING", "Broken locators auto-fixed\nFailed tests auto-retried", LIGHT_BLUE),
-    ("TRUSTWORTHY AI", "Every decision measured\nAudited and explainable", ACCENT_TEAL),
-    ("PRODUCTION-READY", "CI/CD integrated\nSecurity hardened, monitoring live", ACCENT_BLUE),
-]
+text_box(s, Inches(0.6), Inches(3.8), Inches(12), Inches(0.4),
+         "Return on Investment:", size=18, color=BLUE, bold=True)
 
-for i, (title, desc, color) in enumerate(benefits):
-    x = Inches(0.5) + Inches(i * 3.15)
-    y = Inches(1.6)
-    add_shape_bg(slide, x, y, Inches(2.95), Inches(1.8), RGBColor(0x14, 0x1E, 0x3A))
-    add_shape_bg(slide, x, y, Inches(2.95), Inches(0.05), color)
-    add_text_box(slide, x + Inches(0.15), y + Inches(0.2), Inches(2.65), Inches(0.4),
-                 title, font_size=20, color=color, bold=True)
-    add_text_box(slide, x + Inches(0.15), y + Inches(0.7), Inches(2.65), Inches(0.8),
-                 desc, font_size=14, color=RGBColor(0xBB, 0xBB, 0xBB))
+add_table(s, Inches(0.6), Inches(4.2), Inches(12), 0.4,
+    ["Area", "Before (Manual + Traditional)", "After (Agentic AI Platform)", "Improvement"],
+    [
+        ["Test design time per story", "3-5 days", "< 15 minutes", "95% reduction"],
+        ["Script maintenance effort", "40% of QA time", "Minimal (self-healing)", "70% reduction"],
+        ["Bug escape rate to production", "~15%", "< 5%", "67% reduction"],
+        ["Test coverage visibility", "Gut feeling / unknown", "Measured: 84% with trend", "From 0% to full visibility"],
+    ])
 
-# ROI
-add_shape_bg(slide, Inches(0.5), Inches(3.7), Inches(12.333), Inches(1.3), RGBColor(0x14, 0x1E, 0x3A))
-add_text_box(slide, Inches(0.8), Inches(3.8), Inches(4), Inches(0.4),
-             "ROI SUMMARY", font_size=18, color=GREEN_OK, bold=True)
+# Closing statement
+shape = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.6), Inches(5.8), Inches(12), Inches(0.9))
+shape.fill.solid()
+shape.fill.fore_color.rgb = BLUE
+shape.line.fill.background()
+text_box(s, Inches(0.8), Inches(5.9), Inches(11.5), Inches(0.7),
+         '"This architecture ensures confidence in both the application under test\nand the AI testing platform itself."',
+         size=20, color=WHITE, bold=True, align=PP_ALIGN.CENTER)
 
-roi_items = [
-    ("Test design time:", "Days → Minutes", "95% reduction"),
-    ("Script maintenance:", "Constant → Minimal", "70% reduction"),
-    ("Bug escape rate:", "15% → < 5%", "67% reduction"),
-]
-y = Inches(4.25)
-for label, change, impact in roi_items:
-    add_text_box(slide, Inches(0.8), y, Inches(2.5), Inches(0.3),
-                 label, font_size=14, color=RGBColor(0xBB, 0xBB, 0xBB), bold=True)
-    add_text_box(slide, Inches(3.3), y, Inches(3.5), Inches(0.3),
-                 change, font_size=14, color=WHITE)
-    add_text_box(slide, Inches(7.0), y, Inches(3), Inches(0.3),
-                 impact, font_size=14, color=GREEN_OK, bold=True)
-    y += Inches(0.3)
-
-# Closing statement box
-add_shape_bg(slide, Inches(0.5), Inches(5.3), Inches(12.333), Inches(1.3), ACCENT_BLUE)
-add_text_box(slide, Inches(0.8), Inches(5.4), Inches(11.8), Inches(1.0),
-             '"This architecture ensures confidence in both the application\n'
-             'under test and the AI testing platform itself."',
-             font_size=22, color=WHITE, bold=True, alignment=PP_ALIGN.CENTER)
-
-add_slide_number(slide, 17)
+slide_num(s, 17)
 
 
 # ══════════════════════════════════════════════════════════════
 # SAVE
 # ══════════════════════════════════════════════════════════════
-output_path = r"F:\work\testing-tool\Agentic-AI-Testing-Architecture.pptx"
-prs.save(output_path)
-print(f"[OK] Presentation saved: {output_path}")
-print(f"     17 slides created")
+output = r"F:\work\testing-tool\Agentic-AI-Testing-Architecture-v2.pptx"
+prs.save(output)
+print(f"[OK] Saved: {output}")
+print(f"     17 slides, clean white theme, interview-ready")
